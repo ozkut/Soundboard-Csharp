@@ -1,4 +1,4 @@
-namespace SoundBorad
+namespace SoundBoard
 {
     internal static class Program
     {

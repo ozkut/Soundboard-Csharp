@@ -1,4 +1,4 @@
-﻿namespace SoundBorad
+﻿namespace SoundBoard
 {
     partial class Form1
     {
@@ -33,13 +33,13 @@
             trackBar = new TrackBar();
             cb_StopPrevSound = new CheckBox();
             b_Scan = new Button();
-            comboBox = new ComboBox();
+            listBox = new ListBox();
             ((System.ComponentModel.ISupportInitialize)trackBar).BeginInit();
             SuspendLayout();
             // 
             // b_RegisterKey
             // 
-            b_RegisterKey.Location = new Point(12, 126);
+            b_RegisterKey.Location = new Point(12, 168);
             b_RegisterKey.Name = "b_RegisterKey";
             b_RegisterKey.Size = new Size(75, 23);
             b_RegisterKey.TabIndex = 13;
@@ -50,7 +50,7 @@
             // l_registeringKey
             // 
             l_registeringKey.AutoSize = true;
-            l_registeringKey.Location = new Point(93, 129);
+            l_registeringKey.Location = new Point(93, 171);
             l_registeringKey.Name = "l_registeringKey";
             l_registeringKey.Size = new Size(106, 17);
             l_registeringKey.TabIndex = 14;
@@ -72,7 +72,7 @@
             cb_StopPrevSound.AutoSize = true;
             cb_StopPrevSound.Checked = true;
             cb_StopPrevSound.CheckState = CheckState.Checked;
-            cb_StopPrevSound.Location = new Point(12, 99);
+            cb_StopPrevSound.Location = new Point(12, 141);
             cb_StopPrevSound.Name = "cb_StopPrevSound";
             cb_StopPrevSound.Size = new Size(282, 21);
             cb_StopPrevSound.TabIndex = 12;
@@ -88,27 +88,28 @@
             b_Scan.Text = "Scan";
             b_Scan.UseVisualStyleBackColor = true;
             // 
-            // comboBox
+            // listBox
             // 
-            comboBox.DropDownStyle = ComboBoxStyle.DropDownList;
-            comboBox.FormattingEnabled = true;
-            comboBox.Location = new Point(12, 63);
-            comboBox.Name = "comboBox";
-            comboBox.Size = new Size(275, 25);
-            comboBox.TabIndex = 11;
-            comboBox.SelectedIndexChanged += comboBox_SelectedIndexChanged;
+            listBox.FormattingEnabled = true;
+            listBox.HorizontalScrollbar = true;
+            listBox.ItemHeight = 17;
+            listBox.Location = new Point(12, 63);
+            listBox.Name = "listBox";
+            listBox.Size = new Size(275, 72);
+            listBox.TabIndex = 15;
+            listBox.SelectedIndexChanged += listBox_SelectedIndexChanged;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(299, 158);
+            ClientSize = new Size(609, 341);
+            Controls.Add(listBox);
             Controls.Add(b_RegisterKey);
             Controls.Add(l_registeringKey);
             Controls.Add(trackBar);
             Controls.Add(cb_StopPrevSound);
             Controls.Add(b_Scan);
-            Controls.Add(comboBox);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             MaximizeBox = false;
             Name = "Form1";
@@ -127,6 +128,6 @@
         private TrackBar trackBar;
         private CheckBox cb_StopPrevSound;
         private Button b_Scan;
-        private ComboBox comboBox;
+        private ListBox listBox;
     }
 }

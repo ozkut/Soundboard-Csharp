@@ -3,7 +3,7 @@ using System.IO;
 using NAudio.Wave;
 using System.Reflection.Metadata;
 
-namespace SoundBorad
+namespace SoundBoard
 {
     public partial class Form1 : Form
     {
@@ -14,9 +14,10 @@ namespace SoundBorad
         private string prevFileDir;
 
         private bool isRegisteringKey = false;
+        private sbyte selectedIndex = 0;
 
-        private const Keys defaultKey = Keys.NumPad5;
         private List<Keys> keys;
+
 
         public Form1() => InitializeComponent();
 
@@ -80,24 +81,22 @@ namespace SoundBorad
 
             for (int i = 0; i < soundFiles.Length; i++)
             {
-                comboBox.Items.Add(soundFiles[i][myDir.Length..]);//same as substring?
-                keys.Insert(i, defaultKey);
+                listBox.Items.Add(soundFiles[i][myDir.Length..]);
+                keys.Insert(i, Keys.None);
             }
-
-            comboBox.SelectedIndex = 0;
-        }
-
-        private void comboBox_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            b_RegisterKey.Text = keys[comboBox.SelectedIndex].ToString();
         }
 
         private void b_RegisterKey_KeyDown(object sender, KeyEventArgs e)
         {
             if (!isRegisteringKey) return;
-            keys[comboBox.SelectedIndex] = e.KeyCode;
-            b_RegisterKey.Text = keys[comboBox.SelectedIndex].ToString();
-            Hotkey.Create(Handle, comboBox.SelectedIndex, e.KeyCode);
+            selectedIndex = (sbyte)listBox.SelectedIndex;
+            keys[selectedIndex] = e.KeyCode;
+            b_RegisterKey.Text = keys[selectedIndex].ToString();
+            l_registeringKey.Text = "Registering Key: " + isRegisteringKey.ToString();
+            listBox.Items[selectedIndex] = $"{keys[selectedIndex]}) {listBox.Items[selectedIndex]}";//fix
+            listBox.SelectedIndex = selectedIndex;
+            Hotkey.Create(Handle, selectedIndex, e.KeyCode);
+            isRegisteringKey = false;
         }
 
         private void b_RegisterKey_Click(object sender, EventArgs e)
@@ -117,6 +116,11 @@ namespace SoundBorad
         {
             Show();
             WindowState = FormWindowState.Normal;
+        }
+
+        private void listBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            b_RegisterKey.Text = keys[selectedIndex].ToString();
         }
     }
 

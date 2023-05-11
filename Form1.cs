@@ -1,6 +1,6 @@
 using System;
-using System.Windows.Forms;
 using System.IO;
+using System.Windows.Forms;
 
 namespace SoundBoard
 {
@@ -17,7 +17,7 @@ namespace SoundBoard
         private bool isRegisteringKey_;
         private bool isRegisteringKey
         {
-            get { return isRegisteringKey_; }
+            get => isRegisteringKey_;
             set
             {
                 isRegisteringKey_ = value;
@@ -45,10 +45,10 @@ namespace SoundBoard
             {
                 UpdateUIElements(i - 1);
             }
-            
+
             NotifyIcon notifyIcon = new() { Visible = true, Icon = System.Drawing.SystemIcons.Application, ContextMenuStrip = new() };
-            notifyIcon.ContextMenuStrip.Items.Add("Show", null, ShowWindowClicked);
-            notifyIcon.ContextMenuStrip.Items.Add("Exit", System.Drawing.SystemIcons.Error.ToBitmap(), Exit);
+            _ = notifyIcon.ContextMenuStrip.Items.Add("Show", null, ShowWindowClicked);
+            _ = notifyIcon.ContextMenuStrip.Items.Add("Exit", System.Drawing.SystemIcons.Error.ToBitmap(), Exit);
 
             notifyIcon.BalloonTipClicked += ShowWindowClicked;
             notifyIcon.DoubleClick += ShowWindowClicked;
@@ -89,7 +89,7 @@ namespace SoundBoard
                 prevFileDir = soundFiles[id];
             }
             else
-                sound.Seek(0, SeekOrigin.Begin);
+                _ = sound.Seek(0, SeekOrigin.Begin);
 
             output.Volume = trackBar.Value / 100f;
             output.Play();
@@ -104,10 +104,10 @@ namespace SoundBoard
             Environment.Exit(Environment.ExitCode);
         }
 
-        private void ScanForSounds(object? sender, EventArgs? e)
+        private void ScanForSounds(object sender, EventArgs e)
         {
             if (!Directory.Exists(myDir))
-                Directory.CreateDirectory(myDir);
+                _ = Directory.CreateDirectory(myDir);
 
             soundFiles = Directory.GetFiles(myDir, "*.mp3");
             names = new string[soundFiles.Length];
@@ -125,6 +125,7 @@ namespace SoundBoard
         private void b_RegisterKey_KeyDown(object sender, KeyEventArgs e)
         {
             if (!isRegisteringKey) return;
+
             selectedIndex = listBox.SelectedIndex;
             keys[selectedIndex] = (sbyte)e.KeyCode;
             UpdateUIElements(selectedIndex);

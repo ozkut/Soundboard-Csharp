@@ -1,14 +1,15 @@
-using System.Runtime.InteropServices;
+using System;
+using System.Windows.Forms;
 using System.IO;
-using NAudio.Wave;
-using System.Reflection.Metadata;
 
 namespace SoundBoard
 {
     public partial class Form1 : Form
     {
-        private WaveOut output;
-        private Mp3FileReader sound;
+        private NAudio.Wave.WaveOut output;
+        private NAudio.Wave.Mp3FileReader sound;
+
+        private readonly string myDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
 
         private string[] soundFiles, names;
         private string prevFileDir;
@@ -24,9 +25,9 @@ namespace SoundBoard
             }
         }
 
-        private sbyte selectedIndex = 0;
+        private int selectedIndex = 0;
 
-        private Keys[] keys;
+        private sbyte[] keys;
 
 
         public Form1() => InitializeComponent();
@@ -38,9 +39,16 @@ namespace SoundBoard
 
             ScanForSounds(null, null);
 
-            NotifyIcon notifyIcon = new() { Visible = true, Icon = SystemIcons.Application, ContextMenuStrip = new() };
+            LoadKeybinds();
+
+            for (int i = keys.Length; i > 0; i--)
+            {
+                UpdateUIElements(i - 1);
+            }
+            
+            NotifyIcon notifyIcon = new() { Visible = true, Icon = System.Drawing.SystemIcons.Application, ContextMenuStrip = new() };
             notifyIcon.ContextMenuStrip.Items.Add("Show", null, ShowWindowClicked);
-            notifyIcon.ContextMenuStrip.Items.Add("Exit", SystemIcons.Error.ToBitmap(), Exit);
+            notifyIcon.ContextMenuStrip.Items.Add("Exit", System.Drawing.SystemIcons.Error.ToBitmap(), Exit);
 
             notifyIcon.BalloonTipClicked += ShowWindowClicked;
             notifyIcon.DoubleClick += ShowWindowClicked;
@@ -51,6 +59,25 @@ namespace SoundBoard
             base.WndProc(ref key);
             if (key.Msg == 0x0312)
                 PlaySound(key.WParam.ToInt32());
+        }
+
+        private void LoadKeybinds()
+        {
+            Vars.Key = System.Text.Json.JsonSerializer.Deserialize<sbyte[]>(File.ReadAllText(myDir + "keybinds.json"));
+            for (int i = 0; i < Vars.Key.Length; i++)
+            {
+                keys[i] = Vars.Key[i];
+            }
+        }
+
+        private void SaveKeybinds()
+        {
+            Vars.Key = new sbyte[keys.Length];
+            for (int i = 0; i < keys.Length; i++)
+            {
+                Vars.Key[i] = keys[i];
+            }
+            File.WriteAllText(myDir + "keybinds.json", System.Text.Json.JsonSerializer.Serialize(Vars.Key));
         }
 
         private void PlaySound(int id)
@@ -70,6 +97,7 @@ namespace SoundBoard
 
         private void Exit(object sender, EventArgs e)
         {
+            SaveKeybinds();
             Hotkey.Delete(Handle, keys.Length);
             output?.Dispose();
             sound?.Dispose();
@@ -78,14 +106,12 @@ namespace SoundBoard
 
         private void ScanForSounds(object? sender, EventArgs? e)
         {
-            string myDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
-
             if (!Directory.Exists(myDir))
                 Directory.CreateDirectory(myDir);
 
             soundFiles = Directory.GetFiles(myDir, "*.mp3");
             names = new string[soundFiles.Length];
-            keys = new Keys[soundFiles.Length];
+            keys = new sbyte[soundFiles.Length];
 
             listBox.Items.Clear();
 
@@ -93,19 +119,17 @@ namespace SoundBoard
             {
                 names[i] = soundFiles[i][myDir.Length..];
                 listBox.Items.Insert(i, names[i]);
-                keys[i] = Keys.None;
             }
         }
 
         private void b_RegisterKey_KeyDown(object sender, KeyEventArgs e)
         {
             if (!isRegisteringKey) return;
-            selectedIndex = (sbyte)listBox.SelectedIndex;
-            keys[selectedIndex] = e.KeyCode;
-            b_RegisterKey.Text = keys[selectedIndex].ToString();
-            listBox.Items[selectedIndex] = $"{keys[selectedIndex]} - {names[selectedIndex]}";//fix
+            selectedIndex = listBox.SelectedIndex;
+            keys[selectedIndex] = (sbyte)e.KeyCode;
+            UpdateUIElements(selectedIndex);
             listBox.SelectedIndex = selectedIndex;
-            Hotkey.Create(Handle, selectedIndex, e.KeyCode);
+            Hotkey.Create(Handle, selectedIndex, keys[selectedIndex]);
             isRegisteringKey = false;
         }
 
@@ -127,30 +151,39 @@ namespace SoundBoard
             WindowState = FormWindowState.Normal;
         }
 
-        private void listBox_SelectedIndexChanged(object sender, EventArgs e)
+        private void listBox_MouseClick(object sender, MouseEventArgs e)
         {
-            b_RegisterKey.Text = keys[selectedIndex].ToString();
-            isRegisteringKey = false;
+            selectedIndex = listBox.SelectedIndex;
+            UpdateUIElements(selectedIndex);
+            if (isRegisteringKey) isRegisteringKey = false;
+        }
+
+        private void UpdateUIElements(int index)
+        {
+            b_RegisterKey.Text = ((Keys)keys[index]).ToString();
+            listBox.Items[index] = $"{(Keys)keys[index]} - {names[index]}";
         }
     }
 
-    class Hotkey
+    internal class Vars
+    {
+        public static sbyte[] Key { get; set; }
+    }
+
+    internal class Hotkey
     {
         //[DllImport("user32.dll")]
         //public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
         //[DllImport("user32.dll")]
         //public static extern bool ReleaseCapture();
 
-        [DllImport("user32.dll")]
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern int RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
-        [DllImport("user32.dll")]
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern int UnregisterHotKey(IntPtr hWnd, int id);
 
-        public static void Create(IntPtr hWnd, int id, Keys key)
-        {
-            //Delete(hWnd);
-            _ = RegisterHotKey(hWnd, id, 0, (int)key);
-        }
+        public static void Create(IntPtr hWnd, int id, int key) => _ = RegisterHotKey(hWnd, id, 0, key);
 
         public static void Delete(IntPtr hWnd, int numSounds)
         {

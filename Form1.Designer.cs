@@ -1,4 +1,7 @@
-﻿namespace SoundBoard
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace SoundBoard
 {
     partial class Form1
     {
@@ -99,7 +102,7 @@
             listBox.Name = "listBox";
             listBox.Size = new Size(385, 208);
             listBox.TabIndex = 15;
-            listBox.SelectedIndexChanged += listBox_SelectedIndexChanged;
+            listBox.MouseClick += listBox_MouseClick;
             // 
             // b_Exit
             // 

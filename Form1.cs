@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Windows.Forms;
+using System.Linq;
 
 namespace SoundBoard
 {
@@ -8,10 +9,11 @@ namespace SoundBoard
     {
         private NAudio.Wave.WaveOut output;
         private NAudio.Wave.Mp3FileReader sound;
+        private NotifyIcon notifyIcon = new() { Visible = true, Icon = System.Drawing.SystemIcons.Application, ContextMenuStrip = new() };
 
         private readonly string myDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
 
-        private string[] soundFiles, names;
+        private string[] soundFiles;
         private string prevFileDir;
 
         private bool isRegisteringKey_;
@@ -28,6 +30,8 @@ namespace SoundBoard
         private int selectedIndex = 0;
 
         private sbyte[] keys;
+
+        private System.ComponentModel.BindingList<string> items;
 
 
         public Form1() => InitializeComponent();
@@ -46,7 +50,6 @@ namespace SoundBoard
                 UpdateUIElements(i - 1);
             }
 
-            NotifyIcon notifyIcon = new() { Visible = true, Icon = System.Drawing.SystemIcons.Application, ContextMenuStrip = new() };
             _ = notifyIcon.ContextMenuStrip.Items.Add("Show", null, ShowWindowClicked);
             _ = notifyIcon.ContextMenuStrip.Items.Add("Exit", System.Drawing.SystemIcons.Error.ToBitmap(), Exit);
 
@@ -61,28 +64,21 @@ namespace SoundBoard
                 PlaySound(key.WParam.ToInt32());
         }
 
-        private void LoadKeybinds()
+        private async void LoadKeybinds()
         {
-            Vars.Key = System.Text.Json.JsonSerializer.Deserialize<sbyte[]>(File.ReadAllText(myDir + "keybinds.json"));
-            for (int i = 0; i < Vars.Key.Length; i++)
-            {
-                keys[i] = Vars.Key[i];
-            }
+            Vars.Key = System.Text.Json.JsonSerializer.Deserialize<sbyte[]>(await File.ReadAllTextAsync(Path.Combine(myDir, "keybinds.json")));
+            keys = Vars.Key.ToArray();
         }
 
-        private void SaveKeybinds()
+        private async void SaveKeybinds()
         {
-            Vars.Key = new sbyte[keys.Length];
-            for (int i = 0; i < keys.Length; i++)
-            {
-                Vars.Key[i] = keys[i];
-            }
-            File.WriteAllText(myDir + "keybinds.json", System.Text.Json.JsonSerializer.Serialize(Vars.Key));
+            Vars.Key = keys.ToArray();
+            await File.WriteAllTextAsync(Path.Combine(myDir, "keybinds.json"), System.Text.Json.JsonSerializer.Serialize(Vars.Key));
         }
 
         private void PlaySound(int id)
         {
-            if (!cb_StopPrevSound.Checked || prevFileDir != soundFiles[id])
+            if (!cb_StopPrevSound.Checked || prevFileDir != soundFiles[id])//maybe make an mp3filereader array?
             {
                 sound = new(soundFiles[id]);
                 output.Init(sound);
@@ -99,6 +95,8 @@ namespace SoundBoard
         {
             SaveKeybinds();
             Hotkey.Delete(Handle, keys.Length);
+            notifyIcon.Visible = false;
+            notifyIcon?.Dispose();
             output?.Dispose();
             sound?.Dispose();
             Environment.Exit(Environment.ExitCode);
@@ -110,16 +108,14 @@ namespace SoundBoard
                 _ = Directory.CreateDirectory(myDir);
 
             soundFiles = Directory.GetFiles(myDir, "*.mp3");
-            names = new string[soundFiles.Length];
             keys = new sbyte[soundFiles.Length];
 
-            listBox.Items.Clear();
-
+            string[] names = new string[soundFiles.Length];
             for (int i = 0; i < soundFiles.Length; i++)
             {
                 names[i] = soundFiles[i][myDir.Length..];
-                listBox.Items.Insert(i, names[i]);
             }
+            listBox.DataSource = items = new(names.ToList());
         }
 
         private void b_RegisterKey_KeyDown(object sender, KeyEventArgs e)
@@ -161,8 +157,9 @@ namespace SoundBoard
 
         private void UpdateUIElements(int index)
         {
-            b_RegisterKey.Text = ((Keys)keys[index]).ToString();
-            listBox.Items[index] = $"{(Keys)keys[index]} - {names[index]}";
+            string key = ((Keys)keys[index]).ToString();
+            b_RegisterKey.Text = key;
+            items[index] = $"{key} - {soundFiles[index][myDir.Length..]}";
         }
     }
 

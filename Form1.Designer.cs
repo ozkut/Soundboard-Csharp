@@ -34,14 +34,15 @@
             cb_StopPrevSound = new CheckBox();
             b_Scan = new Button();
             listBox = new ListBox();
+            b_Exit = new Button();
             ((System.ComponentModel.ISupportInitialize)trackBar).BeginInit();
             SuspendLayout();
             // 
             // b_RegisterKey
             // 
-            b_RegisterKey.Location = new Point(12, 168);
+            b_RegisterKey.Location = new Point(12, 80);
             b_RegisterKey.Name = "b_RegisterKey";
-            b_RegisterKey.Size = new Size(75, 23);
+            b_RegisterKey.Size = new Size(102, 23);
             b_RegisterKey.TabIndex = 13;
             b_RegisterKey.UseVisualStyleBackColor = true;
             b_RegisterKey.Click += b_RegisterKey_Click;
@@ -50,7 +51,7 @@
             // l_registeringKey
             // 
             l_registeringKey.AutoSize = true;
-            l_registeringKey.Location = new Point(93, 171);
+            l_registeringKey.Location = new Point(12, 60);
             l_registeringKey.Name = "l_registeringKey";
             l_registeringKey.Size = new Size(106, 17);
             l_registeringKey.TabIndex = 14;
@@ -72,38 +73,50 @@
             cb_StopPrevSound.AutoSize = true;
             cb_StopPrevSound.Checked = true;
             cb_StopPrevSound.CheckState = CheckState.Checked;
-            cb_StopPrevSound.Location = new Point(12, 141);
+            cb_StopPrevSound.Location = new Point(12, 109);
             cb_StopPrevSound.Name = "cb_StopPrevSound";
-            cb_StopPrevSound.Size = new Size(282, 21);
+            cb_StopPrevSound.Size = new Size(102, 21);
             cb_StopPrevSound.TabIndex = 12;
-            cb_StopPrevSound.Text = "Stop previous sound if new sound is played";
+            cb_StopPrevSound.Text = "Disable echo";
             cb_StopPrevSound.UseVisualStyleBackColor = true;
             // 
             // b_Scan
             // 
-            b_Scan.Location = new Point(212, 23);
+            b_Scan.Location = new Point(120, 80);
             b_Scan.Name = "b_Scan";
-            b_Scan.Size = new Size(75, 23);
+            b_Scan.Size = new Size(86, 23);
             b_Scan.TabIndex = 10;
             b_Scan.Text = "Scan";
             b_Scan.UseVisualStyleBackColor = true;
+            b_Scan.Click += ScanForSounds;
             // 
             // listBox
             // 
             listBox.FormattingEnabled = true;
             listBox.HorizontalScrollbar = true;
             listBox.ItemHeight = 17;
-            listBox.Location = new Point(12, 63);
+            listBox.Location = new Point(212, 12);
             listBox.Name = "listBox";
-            listBox.Size = new Size(275, 72);
+            listBox.Size = new Size(385, 208);
             listBox.TabIndex = 15;
             listBox.SelectedIndexChanged += listBox_SelectedIndexChanged;
+            // 
+            // b_Exit
+            // 
+            b_Exit.Location = new Point(12, 193);
+            b_Exit.Name = "b_Exit";
+            b_Exit.Size = new Size(75, 23);
+            b_Exit.TabIndex = 16;
+            b_Exit.Text = "Exit";
+            b_Exit.UseVisualStyleBackColor = true;
+            b_Exit.Click += Exit;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(609, 341);
+            ClientSize = new Size(609, 228);
+            Controls.Add(b_Exit);
             Controls.Add(listBox);
             Controls.Add(b_RegisterKey);
             Controls.Add(l_registeringKey);
@@ -129,5 +142,6 @@
         private CheckBox cb_StopPrevSound;
         private Button b_Scan;
         private ListBox listBox;
+        private Button b_Exit;
     }
 }

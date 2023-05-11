@@ -10,26 +10,35 @@ namespace SoundBoard
         private WaveOut output;
         private Mp3FileReader sound;
 
-        private string[] soundFiles;
+        private string[] soundFiles, names;
         private string prevFileDir;
 
-        private bool isRegisteringKey = false;
+        private bool isRegisteringKey_;
+        private bool isRegisteringKey
+        {
+            get { return isRegisteringKey_; }
+            set
+            {
+                isRegisteringKey_ = value;
+                l_registeringKey.Text = $"Registering Key: {isRegisteringKey_}";
+            }
+        }
+
         private sbyte selectedIndex = 0;
 
-        private List<Keys> keys;
+        private Keys[] keys;
 
 
         public Form1() => InitializeComponent();
 
         private void Form1_Load(object sender, EventArgs e)
         {
+            isRegisteringKey = false;
             output = new() { DeviceNumber = 2 };
-            ScanForSounds();
 
-            l_registeringKey.Text = "Registering Key: " + isRegisteringKey.ToString();
+            ScanForSounds(null, null);
 
             NotifyIcon notifyIcon = new() { Visible = true, Icon = SystemIcons.Application, ContextMenuStrip = new() };
-
             notifyIcon.ContextMenuStrip.Items.Add("Show", null, ShowWindowClicked);
             notifyIcon.ContextMenuStrip.Items.Add("Exit", SystemIcons.Error.ToBitmap(), Exit);
 
@@ -61,15 +70,13 @@ namespace SoundBoard
 
         private void Exit(object sender, EventArgs e)
         {
-            Hotkey.Delete(Handle, keys.Count);
+            Hotkey.Delete(Handle, keys.Length);
             output?.Dispose();
             sound?.Dispose();
             Environment.Exit(Environment.ExitCode);
         }
 
-        private void b_Scan_Click(object sender, EventArgs e) => ScanForSounds();
-
-        private void ScanForSounds()
+        private void ScanForSounds(object? sender, EventArgs? e)
         {
             string myDir = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
 
@@ -77,12 +84,16 @@ namespace SoundBoard
                 Directory.CreateDirectory(myDir);
 
             soundFiles = Directory.GetFiles(myDir, "*.mp3");
-            keys = new(soundFiles.Length);
+            names = new string[soundFiles.Length];
+            keys = new Keys[soundFiles.Length];
+
+            listBox.Items.Clear();
 
             for (int i = 0; i < soundFiles.Length; i++)
             {
-                listBox.Items.Add(soundFiles[i][myDir.Length..]);
-                keys.Insert(i, Keys.None);
+                names[i] = soundFiles[i][myDir.Length..];
+                listBox.Items.Insert(i, names[i]);
+                keys[i] = Keys.None;
             }
         }
 
@@ -92,8 +103,7 @@ namespace SoundBoard
             selectedIndex = (sbyte)listBox.SelectedIndex;
             keys[selectedIndex] = e.KeyCode;
             b_RegisterKey.Text = keys[selectedIndex].ToString();
-            l_registeringKey.Text = "Registering Key: " + isRegisteringKey.ToString();
-            listBox.Items[selectedIndex] = $"{keys[selectedIndex]}) {listBox.Items[selectedIndex]}";//fix
+            listBox.Items[selectedIndex] = $"{keys[selectedIndex]} - {names[selectedIndex]}";//fix
             listBox.SelectedIndex = selectedIndex;
             Hotkey.Create(Handle, selectedIndex, e.KeyCode);
             isRegisteringKey = false;
@@ -102,7 +112,6 @@ namespace SoundBoard
         private void b_RegisterKey_Click(object sender, EventArgs e)
         {
             isRegisteringKey = !isRegisteringKey;
-            l_registeringKey.Text = "Registering Key: " + isRegisteringKey.ToString();
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -121,6 +130,7 @@ namespace SoundBoard
         private void listBox_SelectedIndexChanged(object sender, EventArgs e)
         {
             b_RegisterKey.Text = keys[selectedIndex].ToString();
+            isRegisteringKey = false;
         }
     }
 

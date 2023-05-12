@@ -29,7 +29,7 @@ namespace SoundBoard
 
         private int selectedIndex = 0;
 
-        private sbyte[] keys;
+        private System.Collections.Generic.Dictionary<string,Keys> keys;
 
         private System.ComponentModel.BindingList<string> items;
 
@@ -41,7 +41,7 @@ namespace SoundBoard
             isRegisteringKey = false;
             output = new() { DeviceNumber = 2 };
 
-            ScanForSounds(null, null);
+            ScanForSounds(null,null);
 
             LoadKeybinds();
 
@@ -69,17 +69,21 @@ namespace SoundBoard
             string path = Path.Combine(myDir, "keybinds.json");
             if (!File.Exists(path)) 
                 return;
-            Vars.Key = System.Text.Json.JsonSerializer.Deserialize<sbyte[]>(File.ReadAllText(path));
-            keys = Vars.Key.ToArray();
-            for (int i = 0; i < keys.Length; i++)
+            keys = Vars.Key = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string,Keys>>(File.ReadAllText(path));
+            for (int i = 0; i < keys.Count; i++)
             {
-                Hotkey.Create(Handle, i, keys[i]);
+                if (Math.Min(keys.Count, soundFiles.Length) < i && keys.ContainsKey(soundFiles[i]))
+                    Hotkey.Create(Handle, i, (int)keys[soundFiles[i]]);
             }
         }
 
         private async void SaveKeybinds()
         {
-            Vars.Key = keys.ToArray();
+            for (int i = 0; i < keys.Count; i++)
+            {
+                Vars.Key[soundFiles[i]] = keys[soundFiles[i]].ToString();
+            }
+            
             await File.WriteAllTextAsync(Path.Combine(myDir, "keybinds.json"), System.Text.Json.JsonSerializer.Serialize(Vars.Key));
         }
 
@@ -101,7 +105,7 @@ namespace SoundBoard
         private void Exit(object sender, EventArgs e)
         {
             SaveKeybinds();
-            Hotkey.Delete(Handle, keys.Length);
+            Hotkey.Delete(Handle, keys.Count);
             notifyIcon.Visible = false;
             notifyIcon?.Dispose();
             output?.Dispose();
@@ -115,14 +119,16 @@ namespace SoundBoard
                 _ = Directory.CreateDirectory(myDir);
 
             soundFiles = Directory.GetFiles(myDir, "*.mp3");
-            keys = new sbyte[soundFiles.Length];
+            keys = new(soundFiles.Length);
 
             string[] names = new string[soundFiles.Length];
             for (int i = 0; i < soundFiles.Length; i++)
             {
-                names[i] = soundFiles[i][myDir.Length..];
+                names[i] = soundFiles[i][myDir.Length..];                
             }
             listBox.DataSource = items = new(names.ToList());
+            Hotkey.Delete(Handle, items.Count);
+            LoadKeybinds();
         }
 
         private void b_RegisterKey_KeyDown(object sender, KeyEventArgs e)
@@ -130,10 +136,10 @@ namespace SoundBoard
             if (!isRegisteringKey) return;
 
             selectedIndex = listBox.SelectedIndex;
-            keys[selectedIndex] = (sbyte)e.KeyCode;
+            keys[soundFiles[selectedIndex]] = e.KeyCode;
             UpdateUIElements(selectedIndex);
             listBox.SelectedIndex = selectedIndex;
-            Hotkey.Create(Handle, selectedIndex, keys[selectedIndex]);
+            Hotkey.Create(Handle, selectedIndex, (int)keys[soundFiles[selectedIndex]]);
             isRegisteringKey = false;
         }
 
@@ -164,7 +170,7 @@ namespace SoundBoard
 
         private void UpdateUIElements(int index)
         {
-            string key = index > keys.Length - 1 ? Keys.None.ToString() : ((Keys)keys[index]).ToString();
+            string key = !keys.ContainsKey(soundFiles[index]) ? Keys.None.ToString() : keys[soundFiles[index]].ToString();
             b_RegisterKey.Text = key;
             items[index] = $"{key} - {soundFiles[index][myDir.Length..]}";
         }
@@ -172,7 +178,7 @@ namespace SoundBoard
 
     internal class Vars
     {
-        public static sbyte[] Key { get; set; }
+        public static System.Collections.Generic.Dictionary<string,Keys> Key { get; set; }
     }
 
     internal class Hotkey

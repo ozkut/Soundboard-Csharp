@@ -45,7 +45,7 @@ namespace SoundBoard
 
             LoadKeybinds();
 
-            for (int i = keys.Length; i > 0; i--)
+            for (int i = listBox.Items.Count; i > 0; i--)
             {
                 UpdateUIElements(i - 1);
             }
@@ -64,10 +64,17 @@ namespace SoundBoard
                 PlaySound(key.WParam.ToInt32());
         }
 
-        private async void LoadKeybinds()
+        private void LoadKeybinds()//maybe make async?
         {
-            Vars.Key = System.Text.Json.JsonSerializer.Deserialize<sbyte[]>(await File.ReadAllTextAsync(Path.Combine(myDir, "keybinds.json")));
+            string path = Path.Combine(myDir, "keybinds.json");
+            if (!File.Exists(path)) 
+                return;
+            Vars.Key = System.Text.Json.JsonSerializer.Deserialize<sbyte[]>(File.ReadAllText(path));
             keys = Vars.Key.ToArray();
+            for (int i = 0; i < keys.Length; i++)
+            {
+                Hotkey.Create(Handle, i, keys[i]);
+            }
         }
 
         private async void SaveKeybinds()
@@ -157,7 +164,7 @@ namespace SoundBoard
 
         private void UpdateUIElements(int index)
         {
-            string key = ((Keys)keys[index]).ToString();
+            string key = index > keys.Length - 1 ? Keys.None.ToString() : ((Keys)keys[index]).ToString();
             b_RegisterKey.Text = key;
             items[index] = $"{key} - {soundFiles[index][myDir.Length..]}";
         }

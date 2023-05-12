@@ -38,12 +38,14 @@ namespace SoundBoard
             b_Scan = new Button();
             listBox = new ListBox();
             b_Exit = new Button();
+            l_Volume = new Label();
+            b_DeleteConf = new Button();
             ((System.ComponentModel.ISupportInitialize)trackBar).BeginInit();
             SuspendLayout();
             // 
             // b_RegisterKey
             // 
-            b_RegisterKey.Location = new Point(12, 80);
+            b_RegisterKey.Location = new Point(12, 97);
             b_RegisterKey.Name = "b_RegisterKey";
             b_RegisterKey.Size = new Size(102, 23);
             b_RegisterKey.TabIndex = 13;
@@ -54,7 +56,7 @@ namespace SoundBoard
             // l_registeringKey
             // 
             l_registeringKey.AutoSize = true;
-            l_registeringKey.Location = new Point(12, 60);
+            l_registeringKey.Location = new Point(12, 77);
             l_registeringKey.Name = "l_registeringKey";
             l_registeringKey.Size = new Size(106, 17);
             l_registeringKey.TabIndex = 14;
@@ -70,13 +72,15 @@ namespace SoundBoard
             trackBar.TickFrequency = 10;
             trackBar.TickStyle = TickStyle.Both;
             trackBar.Value = 100;
+            trackBar.Scroll += trackBar_Scroll;
+            trackBar.MouseUp += trackBar_MouseUp;
             // 
             // cb_StopPrevSound
             // 
             cb_StopPrevSound.AutoSize = true;
             cb_StopPrevSound.Checked = true;
             cb_StopPrevSound.CheckState = CheckState.Checked;
-            cb_StopPrevSound.Location = new Point(12, 109);
+            cb_StopPrevSound.Location = new Point(12, 126);
             cb_StopPrevSound.Name = "cb_StopPrevSound";
             cb_StopPrevSound.Size = new Size(102, 21);
             cb_StopPrevSound.TabIndex = 12;
@@ -85,7 +89,7 @@ namespace SoundBoard
             // 
             // b_Scan
             // 
-            b_Scan.Location = new Point(120, 80);
+            b_Scan.Location = new Point(120, 97);
             b_Scan.Name = "b_Scan";
             b_Scan.Size = new Size(86, 23);
             b_Scan.TabIndex = 10;
@@ -106,19 +110,40 @@ namespace SoundBoard
             // 
             // b_Exit
             // 
-            b_Exit.Location = new Point(12, 193);
+            b_Exit.Location = new Point(12, 191);
             b_Exit.Name = "b_Exit";
-            b_Exit.Size = new Size(75, 23);
+            b_Exit.Size = new Size(75, 24);
             b_Exit.TabIndex = 16;
             b_Exit.Text = "Exit";
             b_Exit.UseVisualStyleBackColor = true;
             b_Exit.Click += Exit;
+            // 
+            // l_Volume
+            // 
+            l_Volume.AutoSize = true;
+            l_Volume.Location = new Point(12, 60);
+            l_Volume.Name = "l_Volume";
+            l_Volume.Size = new Size(58, 17);
+            l_Volume.TabIndex = 17;
+            l_Volume.Text = "Volume: ";
+            // 
+            // b_DeleteConf
+            // 
+            b_DeleteConf.Location = new Point(93, 191);
+            b_DeleteConf.Name = "b_DeleteConf";
+            b_DeleteConf.Size = new Size(113, 25);
+            b_DeleteConf.TabIndex = 18;
+            b_DeleteConf.Text = "Delete config";
+            b_DeleteConf.UseVisualStyleBackColor = true;
+            b_DeleteConf.Click += b_DeleteConf_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(609, 228);
+            Controls.Add(b_DeleteConf);
+            Controls.Add(l_Volume);
             Controls.Add(b_Exit);
             Controls.Add(listBox);
             Controls.Add(b_RegisterKey);
@@ -146,5 +171,7 @@ namespace SoundBoard
         private Button b_Scan;
         private ListBox listBox;
         private Button b_Exit;
+        private Label l_Volume;
+        private Button b_DeleteConf;
     }
 }

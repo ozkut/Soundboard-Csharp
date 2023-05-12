@@ -61,7 +61,7 @@ namespace SoundBoard
                 PlaySound(msg.WParam.ToInt32());
         }
 
-        private void LoadKeybinds()//maybe make async?
+        private void LoadKeybinds()
         {
             string path = Path.Combine(soundDirectory, "keybinds.json");
             if (!File.Exists(path)) return;
@@ -73,8 +73,7 @@ namespace SoundBoard
             Vars.Save = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(path).TrimEnd(lastLine.ToCharArray()));
             for (int i = 0; i < Vars.Save.Count; i++)
             {
-                if (i >= soundFiles.Length)
-                    break;
+                if (i >= soundFiles.Length) break;
 
                 if (!Vars.Save.ContainsKey(soundFiles[i]))
                     Vars.Save.Add(soundFiles[i], Keys.None.ToString());
@@ -100,14 +99,13 @@ namespace SoundBoard
 
         private void PlaySound(int id)
         {
-            if (!cb_StopPrevSound.Checked || prevFileDir != soundFiles[id])//maybe make an mp3filereader array?
+            if (!cb_StopPrevSound.Checked || prevFileDir != soundFiles[id])
             {
                 sound = new(soundFiles[id]);
                 output.Init(sound);
                 prevFileDir = soundFiles[id];
             }
-            else
-                _ = sound.Seek(0, SeekOrigin.Begin);
+            else _ = sound.Seek(0, SeekOrigin.Begin);
 
             trackBar_Scroll(null, null);
             output.Play();
@@ -116,18 +114,12 @@ namespace SoundBoard
 
         private void ScanForSounds(object sender, EventArgs e)
         {
-            if (!Directory.Exists(soundDirectory))
-                _ = Directory.CreateDirectory(soundDirectory);
+            _ = Directory.CreateDirectory(soundDirectory);
 
             soundFiles = Directory.GetFiles(soundDirectory, "*.mp3");
             keys = new(soundFiles.Length);
+            listBox.DataSource = items = new(soundFiles.ToList());
 
-            string[] names = new string[soundFiles.Length];
-            for (int i = 0; i < soundFiles.Length; i++)
-            {
-                names[i] = soundFiles[i][soundDirectory.Length..];
-            }
-            listBox.DataSource = items = new(names.ToList());
             Hotkey.Delete(Handle, items.Count);
             LoadKeybinds();
             for (int i = keys.Count; i > 0; i--)
@@ -159,7 +151,7 @@ namespace SoundBoard
         {
             string key = !keys.ContainsKey(soundFiles[index]) ? Keys.None.ToString() : keys[soundFiles[index]].ToString();
             b_RegisterKey.Text = key;
-            items[index] = $"{key} - {soundFiles[index][soundDirectory.Length..]}";
+            items[index] = $"{key} - {Path.GetFileNameWithoutExtension(soundFiles[index][soundDirectory.Length..])}";
         }
         private void b_RegisterKey_Click(object sender, EventArgs e)
         {
@@ -212,11 +204,6 @@ namespace SoundBoard
 
     internal class Hotkey
     {
-        //[DllImport("user32.dll")]
-        //public static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-        //[DllImport("user32.dll")]
-        //public static extern bool ReleaseCapture();
-
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         public static extern int RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
 

@@ -61,40 +61,46 @@ namespace SoundBoard
                 PlaySound(msg.WParam.ToInt32());
         }
 
-        private void LoadKeybinds()
+        private async void LoadKeybinds()
         {
             string path = Path.Combine(soundDirectory, "keybinds.json");
             if (!File.Exists(path)) return;
 
-            string lastLine = File.ReadAllLines(path).Last();
-            trackBar.Value = int.Parse(lastLine);
-            trackBar_Scroll(null, null);
-
-            Vars.Save = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(File.ReadAllText(path).TrimEnd(lastLine.ToCharArray()));
-            for (int i = 0; i < Vars.Save.Count; i++)
+            using StreamReader reader = new(path);
+            while (!reader.EndOfStream)
             {
-                if (i >= soundFiles.Length) break;
+                string line = await reader.ReadLineAsync();
 
-                if (!Vars.Save.ContainsKey(soundFiles[i]))
-                    Vars.Save.Add(soundFiles[i], Keys.None.ToString());
-
-                keys[soundFiles[i]] = (Keys)Enum.Parse(typeof(Keys), Vars.Save[soundFiles[i]]);
-                if (keys.ContainsKey(soundFiles[i]))
+                if (line.StartsWith("Volume:"))
                 {
-                    Hotkey.Create(Handle, i, (int)keys[soundFiles[i]]);
-                    UpdateUIElements(i);
+                    trackBar.Value = int.Parse(File.ReadAllLines(path).Last().TrimStart("Volume: ".ToCharArray()));
+                    trackBar_Scroll(null, null);
+                }
+
+                else
+                {
+                    string[] parts = line.Split('|');
+                    if (parts.Length == 2)
+                    {
+                        string key = parts[0].Trim();
+                        Keys value = (Keys)Enum.Parse(typeof(Keys), parts[1].Trim());
+                        if (!keys.ContainsKey(key) || !keys.ContainsValue(value))
+                            keys.Add(key, value);
+                    }
                 }
             }
+            reader.Close();
         }
 
         private async void SaveKeybinds()
         {
-            Vars.Save ??= new(keys.Count);
+            using StreamWriter writer = new(Path.Combine(soundDirectory, "keybinds.json"));
             for (int i = 0; i < keys.Count; i++)
             {
-                Vars.Save[soundFiles[i]] = keys[soundFiles[i]].ToString();
+                await writer.WriteLineAsync($"{soundFiles[i]} | {keys[soundFiles[i]]}");
             }
-            await File.WriteAllTextAsync(Path.Combine(soundDirectory, "keybinds.json"), System.Text.Json.JsonSerializer.Serialize(Vars.Save) + $"\n{trackBar.Value}");
+            await writer.WriteLineAsync($"Volume: {trackBar.Value}");
+            writer.Close();
         }
 
         private void PlaySound(int id)

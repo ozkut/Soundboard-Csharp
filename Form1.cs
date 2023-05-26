@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using System.Linq;
 using System.Collections.Generic;
+using static Soundboard.Hotkey;
 
 namespace SoundBoard
 {
@@ -13,9 +14,9 @@ namespace SoundBoard
 
         private readonly NotifyIcon notifyIcon = new() { Visible = true, Icon = System.Drawing.SystemIcons.Application, ContextMenuStrip = new() };
 
-        private readonly string soundDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
+        public readonly string soundDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
 
-        private string[] soundFiles;
+        public string[] soundFiles;
         private string prevFileDir;
 
         private bool isRegisteringKey_;
@@ -31,11 +32,18 @@ namespace SoundBoard
 
         private int selectedIndex = 0;
 
-        private Dictionary<string, Keys> keys;
+        public Dictionary<string, Keys> keys;
 
         private System.ComponentModel.BindingList<string> items;
 
         public Form1() => InitializeComponent();
+
+        protected override void WndProc(ref Message msg)
+        {
+            base.WndProc(ref msg);
+            if (msg.Msg == 0x0312)
+                PlaySound(msg.WParam.ToInt32());
+        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -44,7 +52,7 @@ namespace SoundBoard
 
             trackBar_Scroll(null, null);
             ScanForSounds(null, null);
-            LoadKeybinds();
+            LoadKeys(this);
             for (int i = listBox.Items.Count; i > 0; i--) { UpdateUIElements(i - 1); }
 
             _ = notifyIcon.ContextMenuStrip.Items.Add("Show", null, ShowWindowClicked);
@@ -54,53 +62,20 @@ namespace SoundBoard
             notifyIcon.DoubleClick += ShowWindowClicked;
         }
 
-        protected override void WndProc(ref Message msg)
+        private void ScanForSounds(object sender, EventArgs e)//fix
         {
-            base.WndProc(ref msg);
-            if (msg.Msg == 0x0312)
-                PlaySound(msg.WParam.ToInt32());
-        }
+            _ = Directory.CreateDirectory(soundDirectory);
+            soundFiles = Directory.GetFiles(soundDirectory, "*.mp3");
+            keys = new(soundFiles.Length);
+            listBox.DataSource = items = new(soundFiles.ToList());
 
-        private async void LoadKeybinds()
-        {
-            string path = Path.Combine(soundDirectory, "keybinds.json");
-            if (!File.Exists(path)) return;
+            Delete(Handle, items.Count);
+            LoadKeys(this);
 
-            using StreamReader reader = new(path);
-            while (!reader.EndOfStream)
+            for (int i = keys.Count; i > 0; i--)
             {
-                string line = await reader.ReadLineAsync();
-
-                if (line.StartsWith("Volume:"))
-                {
-                    trackBar.Value = int.Parse(File.ReadAllLines(path).Last().TrimStart("Volume: ".ToCharArray()));
-                    trackBar_Scroll(null, null);
-                }
-
-                else
-                {
-                    string[] parts = line.Split('|');
-                    if (parts.Length == 2)
-                    {
-                        string key = parts[0].Trim();
-                        Keys value = (Keys)Enum.Parse(typeof(Keys), parts[1].Trim());
-                        if (!keys.ContainsKey(key) || !keys.ContainsValue(value))
-                            keys.Add(key, value);
-                    }
-                }
+                UpdateUIElements(i - 1);
             }
-            reader.Close();
-        }
-
-        private async void SaveKeybinds()
-        {
-            using StreamWriter writer = new(Path.Combine(soundDirectory, "keybinds.json"));
-            for (int i = 0; i < keys.Count; i++)
-            {
-                await writer.WriteLineAsync($"{soundFiles[i]} | {keys[soundFiles[i]]}");
-            }
-            await writer.WriteLineAsync($"Volume: {trackBar.Value}");
-            writer.Close();
         }
 
         private void PlaySound(int id)
@@ -117,23 +92,6 @@ namespace SoundBoard
             output.Play();
         }
 
-
-        private void ScanForSounds(object sender, EventArgs e)
-        {
-            _ = Directory.CreateDirectory(soundDirectory);
-
-            soundFiles = Directory.GetFiles(soundDirectory, "*.mp3");
-            keys = new(soundFiles.Length);
-            listBox.DataSource = items = new(soundFiles.ToList());
-
-            Hotkey.Delete(Handle, items.Count);
-            LoadKeybinds();
-            for (int i = keys.Count; i > 0; i--)
-            {
-                UpdateUIElements(i - 1);
-            }
-        }
-
         private void b_RegisterKey_KeyDown(object sender, KeyEventArgs e)
         {
             if (!isRegisteringKey) return;
@@ -141,8 +99,8 @@ namespace SoundBoard
             keys[soundFiles[selectedIndex]] = e.KeyCode;
             UpdateUIElements(selectedIndex);
             listBox.SelectedIndex = selectedIndex;
-            Hotkey.Create(Handle, selectedIndex, (int)keys[soundFiles[selectedIndex]]);
-            SaveKeybinds();
+            Create(Handle, selectedIndex, (int)keys[soundFiles[selectedIndex]]);
+            SaveKeys(this);
             isRegisteringKey = false;
         }
 
@@ -159,12 +117,9 @@ namespace SoundBoard
             b_RegisterKey.Text = key;
             items[index] = $"{key} - {Path.GetFileNameWithoutExtension(soundFiles[index][soundDirectory.Length..])}";
         }
-        private void b_RegisterKey_Click(object sender, EventArgs e)
-        {
-            isRegisteringKey = !isRegisteringKey;
-        }
+        private void b_RegisterKey_Click(object sender, EventArgs e) => isRegisteringKey = !isRegisteringKey;
 
-        private void trackBar_Scroll(object sender, EventArgs e)
+        public void trackBar_Scroll(object sender, EventArgs e)
         {
             output.Volume = trackBar.Value / 100f;
             l_Volume.Text = $"Volume: {trackBar.Value}%";
@@ -173,7 +128,7 @@ namespace SoundBoard
         private void b_DeleteConf_Click(object sender, EventArgs e)
         {
             File.Delete(Path.Combine(soundDirectory, "keybinds.json"));
-            Hotkey.Delete(Handle, soundFiles.Length);
+            Delete(Handle, soundFiles.Length);
             Application.Restart();
         }
 
@@ -189,41 +144,18 @@ namespace SoundBoard
             Show();
             WindowState = FormWindowState.Normal;
         }
-        private void trackBar_MouseUp(object sender, MouseEventArgs e) => SaveKeybinds();
+
+        private void trackBar_MouseUp(object sender, MouseEventArgs e) => SaveKeys(this);
 
         private void Exit(object sender, EventArgs e)
         {
-            SaveKeybinds();
-            Hotkey.Delete(Handle, keys.Count);
+            SaveKeys(this);
+            Delete(Handle, keys.Count);
             notifyIcon.Visible = false;
             notifyIcon?.Dispose();
             output?.Dispose();
             sound?.Dispose();
             Environment.Exit(Environment.ExitCode);
-        }
-    }
-
-    internal class Vars
-    {
-        public static Dictionary<string, string> Save { get; set; }
-    }
-
-    internal class Hotkey
-    {
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        public static extern int RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
-
-        [System.Runtime.InteropServices.DllImport("user32.dll")]
-        public static extern int UnregisterHotKey(IntPtr hWnd, int id);
-
-        public static void Create(IntPtr hWnd, int id, int key) => _ = RegisterHotKey(hWnd, id, 0, key);
-
-        public static void Delete(IntPtr hWnd, int numSounds)
-        {
-            for (int i = 0; i < numSounds; i++)
-            {
-                _ = UnregisterHotKey(hWnd, i);
-            }
         }
     }
 }

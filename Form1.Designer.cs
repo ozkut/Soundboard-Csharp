@@ -166,12 +166,12 @@ namespace SoundBoard
 
         private Button b_RegisterKey;
         private Label l_registeringKey;
-        private TrackBar trackBar;
         private CheckBox cb_StopPrevSound;
         private Button b_Scan;
         private ListBox listBox;
         private Button b_Exit;
         private Label l_Volume;
         private Button b_DeleteConf;
+        public TrackBar trackBar;
     }
 }

@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Windows.Forms;
 using System.Linq;
+using NAudio.Wave;
+using NAudio.CoreAudioApi;
 using static Soundboard.Hotkey;
 using static Soundboard.GlobalVariables;
 
@@ -30,15 +32,36 @@ namespace SoundBoard
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            CreateShortcut(System.Reflection.Assembly.GetEntryAssembly().GetName().Name);
+            bool deviceFound = false;
+            int i = -1;
+
+            foreach (DirectSoundDeviceInfo dev in DirectSoundOut.Devices)
+            {
+                if (i > -1)
+                {
+                    soundDevices_ComboBox.Items.Add($"{i} - {dev.Description}");
+                    Guids[i] = dev.Guid;
+
+                    if (!deviceFound)
+                    {
+                        deviceFound = dev.Description == "CABLE Input (VB-Audio Virtual Cable)";
+
+                        if (deviceFound || dev.Description == new MMDeviceEnumerator().GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia).FriendlyName)//directsound's default playback device guid is wrong so i had to use the wasapi method to get the default playback device
+                            soundDevices_ComboBox.SelectedIndex = i;
+                    }
+                }
+                i++;
+            }
 
             isRegisteringKey = false;
-            output = new() { DeviceNumber = 2 };
+            prevSoundIndex = soundDevices_ComboBox.SelectedIndex;
+            output = new(Guids[soundDevices_ComboBox.SelectedIndex]);
 
+            CreateShortcut(System.Reflection.Assembly.GetEntryAssembly().GetName().Name);
             trackBar_Scroll(null, null);
             ScanForSounds(null, null);
             LoadKeys(this);
-            for (int i = listBox.Items.Count; i > 0; i--) { UpdateUIElements(i - 1); }
+            for (int j = listBox.Items.Count; j > 0; j--) { UpdateUIElements(j - 1); }
 
             _ = notifyIcon.ContextMenuStrip.Items.Add("Show", null, ShowWindowClicked);
             _ = notifyIcon.ContextMenuStrip.Items.Add("Exit", null/*System.Drawing.SystemIcons.Error.ToBitmap()*/, Exit);
@@ -76,17 +99,28 @@ namespace SoundBoard
 
         private void PlaySound(int id)
         {
-            if (!cb_StopPrevSound.Checked || prevFileDir != soundFiles[id])
+            if (!cb_StopPrevSound.Checked || prevFileDir != soundFiles[id] || prevSoundIndex != soundDevices_ComboBox.SelectedIndex)
             {
                 sound = new(soundFiles[id]);
+                output = new(Guids[soundDevices_ComboBox.SelectedIndex]);
                 output.Init(sound);
                 prevFileDir = soundFiles[id];
+                prevSoundIndex = soundDevices_ComboBox.SelectedIndex;
             }
-            else _ = sound.Seek(0, SeekOrigin.Begin);
+            else
+                _ = sound.Seek(0, SeekOrigin.Begin);
 
             trackBar_Scroll(null, null);
             output.Play();
         }
+
+        private void soundDevices_ComboBox_SelectedValueChanged(object sender, EventArgs e)
+        {
+
+            //MessageBox.Show(soundDevices_ComboBox.SelectedIndex.ToString());
+        }
+
+        private void soundDevices_ComboBox_SelectedIndexChanged(object sender, EventArgs e) { }
 
         private void b_RegisterKey_Click(object sender, EventArgs e) => isRegisteringKey = !isRegisteringKey;
 

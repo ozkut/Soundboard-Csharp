@@ -33,6 +33,7 @@ namespace Soundboard
             string path = Path.Combine(soundDirectory, configFileName);
             if (!File.Exists(path)) return;
 
+            int index = 0;
             using StreamReader reader = new(path);
             while (!reader.EndOfStream)
             {
@@ -53,7 +54,9 @@ namespace Soundboard
                     Keys value = (Keys)Enum.Parse(typeof(Keys), parts[1].Trim());
                     if (!keys.ContainsKey(key) || !keys.ContainsValue(value))
                         keys.Add(key, value);
+                    CreateKey(form1.Handle, index, (int)keys[soundFiles[index]]);//FIX FIX FIX
                 }
+                index++;
             }
             reader.Close();
         }

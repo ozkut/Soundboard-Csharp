@@ -18,21 +18,18 @@ namespace Soundboard
         [DllImport("user32.dll")]
         public static extern int UnregisterHotKey(IntPtr hWnd, int id);
 
-        public static void CreateKey(IntPtr handle, int id, int key) => _ = RegisterHotKey(handle, id, 0, key);
+        internal static void CreateKey(IntPtr handle, int id, int key) => _ = RegisterHotKey(handle, id, 0, key);
 
-        public static void DeleteKeys(IntPtr handle, int numKeys)
+        internal static void DeleteKeys(IntPtr handle, int numKeys)
         {
-            for (int i = 0; i < numKeys; i++)
-            {
-                _ = UnregisterHotKey(handle, i);
-            }
+            for (int i = 0; i < numKeys; i++) { _ = UnregisterHotKey(handle, i); }
         }
 
-        public async static void LoadKeys(Form1 form1)
+        internal async static void LoadKeys(Form1 form1)
         {
             string path = Path.Combine(soundDirectory, configFileName);
-            if (!File.Exists(path)) return;
-
+            if (!File.Exists(path)) 
+                return;
             int index = 0;
             using StreamReader reader = new(path);
             while (!reader.EndOfStream)
@@ -42,7 +39,7 @@ namespace Soundboard
                 if (line.StartsWith("Volume:"))
                 {
                     form1.trackBar.Value = int.Parse(File.ReadAllLines(path).Last().TrimStart("Volume: ".ToCharArray()));
-                    form1.trackBar_Scroll(null, null);
+                    form1.trackBar_Scroll(null,null);
                 }
 
                 else
@@ -54,14 +51,14 @@ namespace Soundboard
                     Keys value = (Keys)Enum.Parse(typeof(Keys), parts[1].Trim());
                     if (!keys.ContainsKey(key) || !keys.ContainsValue(value))
                         keys.Add(key, value);
-                    CreateKey(form1.Handle, index, (int)keys[soundFiles[index]]);//FIX FIX FIX
+                    CreateKey(form1.Handle, index, (int)keys[soundFiles[index]]);
                 }
                 index++;
             }
             reader.Close();
         }
 
-        public async static void SaveKeys(int trackBarValue)
+        internal async static void SaveKeys(int trackBarValue)
         {
             using StreamWriter writer = new(Path.Combine(soundDirectory, configFileName));
             for (int i = 0; i < keys.Count; i++)

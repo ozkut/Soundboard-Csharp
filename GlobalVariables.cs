@@ -7,24 +7,30 @@ namespace Soundboard
 {
     internal static class GlobalVariables
     {
-        public static readonly string soundDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
+        internal static readonly string soundDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
 
-        public static DirectSoundOut output;
-        public static Mp3FileReader sound;
-        public static Guid[] Guids = new Guid[DirectSoundOut.Devices.Count()];
+        internal static DirectSoundOut output;
+        internal static Mp3FileReader sound;
+        internal static WaveChannel32 waveChannel;
+        internal static Guid[] Guids = new Guid[DirectSoundOut.Devices.Count()];
 
-        public static readonly NotifyIcon notifyIcon = new() { Visible = true, Icon = System.Drawing.SystemIcons.Application, ContextMenuStrip = new() };
+        internal static readonly NotifyIcon notifyIcon = new() 
+        { 
+            Visible = true,
+            Icon = System.Drawing.SystemIcons.Application,
+            ContextMenuStrip = new()
+        };
 
-        public static string[] soundFiles;
-        public static string prevFileDir;
+        internal static string[] soundFiles;
+        internal static string prevFileDir;
 
-        public static bool isRegisteringKey_;
+        internal static bool isRegisteringKey_;
 
-        public static int selectedIndex = 0;
-        public static int prevSoundIndex = -1;
+        internal static int selectedIndex = 0;
+        internal static int prevSoundIndex = -1;
 
-        public static System.Collections.Generic.Dictionary<string, Keys> keys;
+        internal static System.Collections.Generic.Dictionary<string,Keys> keys;
 
-        public static System.ComponentModel.BindingList<string> items;
+        internal static System.ComponentModel.BindingList<string> items;
     }
 }

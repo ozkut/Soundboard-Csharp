@@ -47,9 +47,9 @@ namespace SoundBoard
             // 
             // b_RegisterKey
             // 
-            b_RegisterKey.Location = new Point(12, 97);
+            b_RegisterKey.Location = new Point(12, 101);
             b_RegisterKey.Name = "b_RegisterKey";
-            b_RegisterKey.Size = new Size(102, 23);
+            b_RegisterKey.Size = new Size(111, 29);
             b_RegisterKey.TabIndex = 13;
             b_RegisterKey.UseVisualStyleBackColor = true;
             b_RegisterKey.Click += b_RegisterKey_Click;
@@ -69,7 +69,7 @@ namespace SoundBoard
             trackBar.Location = new Point(12, 12);
             trackBar.Maximum = 100;
             trackBar.Name = "trackBar";
-            trackBar.Size = new Size(194, 45);
+            trackBar.Size = new Size(160, 45);
             trackBar.TabIndex = 9;
             trackBar.TickFrequency = 10;
             trackBar.TickStyle = TickStyle.Both;
@@ -82,7 +82,7 @@ namespace SoundBoard
             cb_StopPrevSound.AutoSize = true;
             cb_StopPrevSound.Checked = true;
             cb_StopPrevSound.CheckState = CheckState.Checked;
-            cb_StopPrevSound.Location = new Point(12, 174);
+            cb_StopPrevSound.Location = new Point(12, 136);
             cb_StopPrevSound.Name = "cb_StopPrevSound";
             cb_StopPrevSound.Size = new Size(102, 21);
             cb_StopPrevSound.TabIndex = 12;
@@ -91,9 +91,9 @@ namespace SoundBoard
             // 
             // b_Scan
             // 
-            b_Scan.Location = new Point(120, 97);
+            b_Scan.Location = new Point(129, 101);
             b_Scan.Name = "b_Scan";
-            b_Scan.Size = new Size(86, 23);
+            b_Scan.Size = new Size(43, 29);
             b_Scan.TabIndex = 10;
             b_Scan.Text = "Scan";
             b_Scan.UseVisualStyleBackColor = true;
@@ -104,17 +104,17 @@ namespace SoundBoard
             listBox.FormattingEnabled = true;
             listBox.HorizontalScrollbar = true;
             listBox.ItemHeight = 17;
-            listBox.Location = new Point(212, 12);
+            listBox.Location = new Point(178, 12);
             listBox.Name = "listBox";
-            listBox.Size = new Size(385, 208);
+            listBox.Size = new Size(331, 225);
             listBox.TabIndex = 15;
             listBox.MouseClick += listBox_MouseClick;
             // 
             // b_Exit
             // 
-            b_Exit.Location = new Point(12, 201);
+            b_Exit.Location = new Point(12, 211);
             b_Exit.Name = "b_Exit";
-            b_Exit.Size = new Size(75, 24);
+            b_Exit.Size = new Size(58, 26);
             b_Exit.TabIndex = 16;
             b_Exit.Text = "Exit";
             b_Exit.UseVisualStyleBackColor = true;
@@ -131,9 +131,9 @@ namespace SoundBoard
             // 
             // b_DeleteConf
             // 
-            b_DeleteConf.Location = new Point(93, 200);
+            b_DeleteConf.Location = new Point(76, 211);
             b_DeleteConf.Name = "b_DeleteConf";
-            b_DeleteConf.Size = new Size(113, 25);
+            b_DeleteConf.Size = new Size(96, 27);
             b_DeleteConf.TabIndex = 18;
             b_DeleteConf.Text = "Delete config";
             b_DeleteConf.UseVisualStyleBackColor = true;
@@ -143,17 +143,15 @@ namespace SoundBoard
             // 
             soundDevices_ComboBox.DropDownStyle = ComboBoxStyle.DropDownList;
             soundDevices_ComboBox.FormattingEnabled = true;
-            soundDevices_ComboBox.Location = new Point(12, 143);
+            soundDevices_ComboBox.Location = new Point(12, 180);
             soundDevices_ComboBox.Name = "soundDevices_ComboBox";
-            soundDevices_ComboBox.Size = new Size(194, 25);
+            soundDevices_ComboBox.Size = new Size(160, 25);
             soundDevices_ComboBox.TabIndex = 19;
-            soundDevices_ComboBox.SelectedIndexChanged += soundDevices_ComboBox_SelectedIndexChanged;
-            soundDevices_ComboBox.SelectedValueChanged += soundDevices_ComboBox_SelectedValueChanged;
             // 
             // l_SoundDev
             // 
             l_SoundDev.AutoSize = true;
-            l_SoundDev.Location = new Point(12, 123);
+            l_SoundDev.Location = new Point(12, 160);
             l_SoundDev.Name = "l_SoundDev";
             l_SoundDev.Size = new Size(102, 17);
             l_SoundDev.TabIndex = 20;
@@ -163,7 +161,7 @@ namespace SoundBoard
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(609, 236);
+            ClientSize = new Size(521, 249);
             Controls.Add(l_SoundDev);
             Controls.Add(soundDevices_ComboBox);
             Controls.Add(b_DeleteConf);
@@ -194,10 +192,10 @@ namespace SoundBoard
         private Button b_Scan;
         private ListBox listBox;
         private Button b_Exit;
-        private Label l_Volume;
         private Button b_DeleteConf;
-        public TrackBar trackBar;
         private ComboBox soundDevices_ComboBox;
         private Label l_SoundDev;
+        internal TrackBar trackBar;
+        internal Label l_Volume;
     }
 }

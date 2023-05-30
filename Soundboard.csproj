@@ -11,8 +11,9 @@
     <Product>$(AssemblyName) csharp</Product>
     <RepositoryUrl>https://github.com/ozkut/Soundboard-Csharp</RepositoryUrl>
     <PackageProjectUrl>https://github.com/ozkut/Soundboard-Csharp</PackageProjectUrl>
-    <AssemblyVersion>1.1</AssemblyVersion>
-    <FileVersion>1.1</FileVersion>
+    <AssemblyVersion>$(PackageVersion)</AssemblyVersion>
+    <FileVersion>$(PackageVersion)</FileVersion>
+    <Version>1.1</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

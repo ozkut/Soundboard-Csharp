@@ -19,6 +19,7 @@ namespace Soundboard
         { 
             Visible = true,
             Icon = System.Drawing.SystemIcons.Application,
+            Text = "Sound Board",
             ContextMenuStrip = new()
         };
 

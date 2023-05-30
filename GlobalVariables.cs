@@ -5,6 +5,7 @@ using System.Linq;
 
 namespace Soundboard
 {
+    #pragma warning disable CS8618 //Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     internal static class GlobalVariables
     {
         internal static readonly string soundDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
@@ -22,6 +23,7 @@ namespace Soundboard
         };
 
         internal static string[] soundFiles;
+        internal static string[] prevSoundFiles;
         internal static string prevFileDir;
 
         internal static bool isRegisteringKey_;

@@ -190,12 +190,12 @@ namespace SoundBoard
         private Label l_registeringKey;
         private CheckBox cb_StopPrevSound;
         private Button b_Scan;
-        private ListBox listBox;
         private Button b_Exit;
         private Button b_DeleteConf;
         private ComboBox soundDevices_ComboBox;
         private Label l_SoundDev;
         internal TrackBar trackBar;
         internal Label l_Volume;
+        internal ListBox listBox;
     }
 }

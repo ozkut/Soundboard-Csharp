@@ -5,14 +5,11 @@ using System.Windows.Forms;
 using System.Runtime.InteropServices;
 using SoundBoard;
 using static Soundboard.GlobalVariables;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Soundboard
 {
     internal class Hotkey
     {
-        private const string configFileName = "config.txt";
-
         [DllImport("user32.dll")]
         public static extern int RegisterHotKey(IntPtr hWnd, int id, int fsModifiers, int vk);
 
@@ -48,9 +45,15 @@ namespace Soundboard
                 #pragma warning disable CS8600
                 string line = await reader.ReadLineAsync();
 
-                if (line!.StartsWith("Volume:"))
+                if (line!.StartsWith("Disable echo:"))
+                    form1.cb_StopPrevSound.Checked = bool.Parse(line.TrimStart("Disable echo: ".ToCharArray()));
+
+                else if (line!.StartsWith("Enable hearing played sound:"))
+                    form1.cb_hearPlayedSound.Checked = bool.Parse(line.TrimStart("Enable hearing played sound: ".ToCharArray()));
+
+                else if (line!.StartsWith("Volume:"))
                 {
-                    form1.trackBar.Value = int.Parse(File.ReadAllLines(path).Last().TrimStart("Volume: ".ToCharArray()));
+                    form1.trackBar.Value = int.Parse(line.TrimStart("Volume: ".ToCharArray()));
                     form1.trackBar_Scroll();
                 }
 
@@ -73,7 +76,7 @@ namespace Soundboard
             reader.Close();
         }
 
-        internal async static void SaveKeys(int trackBarValue)
+        internal async static void SaveKeys(Form1 form1)
         {
             using StreamWriter writer = new(Path.Combine(soundDirectory, configFileName));
             for (int i = 0; i < keys.Count; i++)
@@ -82,7 +85,9 @@ namespace Soundboard
                     keys.Add(soundFiles[i], Keys.None);
                 await writer.WriteLineAsync($"{soundFiles[i]} | {keys[soundFiles[i]]}");
             }
-            await writer.WriteLineAsync($"Volume: {trackBarValue}");
+            await writer.WriteLineAsync($"Volume: {form1.trackBar.Value}");
+            await writer.WriteLineAsync($"Disable echo: {form1.cb_StopPrevSound.Checked}");
+            await writer.WriteLineAsync($"Enable hearing played sound: {form1.cb_hearPlayedSound.Checked}");
             writer.Close();
         }
     }

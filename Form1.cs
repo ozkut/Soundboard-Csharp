@@ -23,11 +23,11 @@ namespace SoundBoard
 
         public Form1() => InitializeComponent();
 
-        protected override void WndProc(ref Message msg)
+        protected override void WndProc(ref Message message)
         {
-            base.WndProc(ref msg);
-            if (msg.Msg == 0x0312)
-                PlaySound(msg.WParam.ToInt32());
+            base.WndProc(ref message);
+            if (message.Msg == 0x0312)
+                PlaySound(currentSoundId = message.WParam.ToInt32());
         }
 
         private void Form1_Load(object sender, EventArgs e)
@@ -37,7 +37,6 @@ namespace SoundBoard
             GetAudioDevices();
             trackBar_Scroll();
             ScanForSounds();
-            CreateShortcut(System.Reflection.Assembly.GetEntryAssembly()!.GetName().Name!);
             LoadKeys(this);
 
             for (int i = listBox.Items.Count; i > 0; i--) { UpdateUIElements(i - 1); }
@@ -55,43 +54,25 @@ namespace SoundBoard
         /// </summary>
         private void GetAudioDevices()
         {
-            int i = -1;
             bool deviceFound = false;
             string defaultDevice = new MMDeviceEnumerator().GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia).FriendlyName;
-
-            foreach (DirectSoundDeviceInfo dev in DirectSoundOut.Devices)
+            DirectSoundDeviceInfo[] devices = DirectSoundOut.Devices.ToArray();
+            for (int i = 1; i < devices.Length; i++)
             {
-                if (i > -1)
+                soundDevices_ComboBox.Items.Add($"{i - 1}: {devices[i].Description}");
+                Guids[i - 1] = devices[i].Guid;
+                if (!deviceFound)
                 {
-                    soundDevices_ComboBox.Items.Add($"{i}: {dev.Description}");
-                    Guids[i] = dev.Guid;
-                    if (!deviceFound)
+                    bool isDefaultDevice = devices[i].Description == defaultDevice;
+                    deviceFound = devices[i].Description == "CABLE Input (VB-Audio Virtual Cable)";//directsound's default playback device guid is wrong so i had to use the wasapi method to get the default playback device
+                    if (deviceFound || isDefaultDevice)
                     {
-                        deviceFound = dev.Description == "CABLE Input (VB-Audio Virtual Cable)";
-                        if (deviceFound || dev.Description == defaultDevice)//directsound's default playback device guid is wrong so i had to use the wasapi method to get the default playback device
-                            soundDevices_ComboBox.SelectedIndex = i;
+                        soundDevices_ComboBox.SelectedIndex = i - 1;
+                        if (isDefaultDevice)
+                            defaultGuid = devices[i].Guid;
                     }
                 }
-                i++;
             }
-        }
-
-        /// <summary>
-        /// Creates a desktop shortcut.
-        /// </summary>
-        /// <param name="shortcutName"></param>
-        private async static void CreateShortcut(string shortcutName)
-        {
-            string shortcutLocation = $"{Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)}\\{shortcutName}.url";
-            if (File.Exists(shortcutLocation))
-                return;
-            using StreamWriter writer = new(shortcutLocation);
-            string app = System.Reflection.Assembly.GetEntryAssembly()!.Location.Replace(".dll", ".exe");
-            await writer.WriteLineAsync("[InternetShortcut]");
-            await writer.WriteLineAsync("URL=file:///" + app);
-            await writer.WriteLineAsync("IconIndex=0");
-            await writer.WriteLineAsync("IconFile=" + app.Replace('\\', '/'));
-            writer.Close();
         }
 
         /// <summary>
@@ -103,15 +84,26 @@ namespace SoundBoard
         {
             if (keys != null)
                 DeleteKeys(Handle, keys.Count);
-
             _ = Directory.CreateDirectory(soundDirectory);
-            soundFiles = Directory.GetFiles(soundDirectory, "*.mp3");
+            soundFiles = Directory.GetFiles(soundDirectory).Where(file => supportedFormats.Contains(Path.GetExtension(file).ToLower())).ToArray();
             keys = new(soundFiles.Length);
             listBox.DataSource = items = new(soundFiles.ToList());
-
             LoadKeys(this);
-
             for (int i = soundFiles.Length; i > 0; i--) { UpdateUIElements(i - 1); }
+        }
+
+        /// <summary>
+        /// Initializes the default playback device
+        /// </summary>
+        /// <param name="id"></param>
+        private void InitializeDefaultDevicePlayback(int id)
+        {
+            if (!cb_hearPlayedSound.Checked)
+                return;
+            defaultOutput = new(defaultGuid);
+            defaultSound = new(soundFiles[id]);
+            defaultWaveChannel = new(defaultSound, trackBar.Value / 100f, 0);
+            defaultOutput.Init(defaultWaveChannel);
         }
 
         /// <summary>
@@ -122,16 +114,43 @@ namespace SoundBoard
         {
             if (!cb_StopPrevSound.Checked || prevFileDir != soundFiles[id] || prevSoundIndex != soundDevices_ComboBox.SelectedIndex)
             {
-                sound = new(soundFiles[id]);
                 output = new(Guids[soundDevices_ComboBox.SelectedIndex]);
+                sound = new(soundFiles[id]);
                 waveChannel = new(sound, trackBar.Value / 100f, 0);
                 output.Init(waveChannel);
+
+                InitializeDefaultDevicePlayback(id);
+
                 prevFileDir = soundFiles[id];
                 prevSoundIndex = soundDevices_ComboBox.SelectedIndex;
             }
+
             else
+            {
                 _ = sound.Seek(0, SeekOrigin.Begin);
+                if (defaultSound != null && cb_hearPlayedSound.Checked)
+                    _ = defaultSound.Seek(0, SeekOrigin.Begin);
+            }
+
             output.Play();
+            if (cb_hearPlayedSound.Checked)
+                defaultOutput.Play();
+        }
+
+        private void cb_hearPlayedSound_CheckedChanged(object sender, EventArgs e)
+        {
+            if (output == null)
+                return;
+
+            if (output.PlaybackState == PlaybackState.Stopped || !cb_hearPlayedSound.Checked)
+                defaultOutput.Stop();
+
+            else if (output.PlaybackState == PlaybackState.Playing)
+            {
+                InitializeDefaultDevicePlayback(currentSoundId);
+                defaultSound.Position = sound.Position;
+                defaultOutput.Play();
+            }
         }
 
         private void b_RegisterKey_Click(object sender, EventArgs e) => isRegisteringKey = !isRegisteringKey;
@@ -140,20 +159,18 @@ namespace SoundBoard
         {
             if (!isRegisteringKey || soundFiles.Length <= 0)
                 return;
-            selectedIndex = listBox.SelectedIndex;
-            keys[soundFiles[selectedIndex]] = e.KeyCode;
-            listBox.SelectedIndex = selectedIndex;
-            UpdateUIElements(selectedIndex);
+            keys[soundFiles[listBox.SelectedIndex]] = e.KeyCode;
+            listBox.SelectedIndex = listBox.SelectedIndex;
+            UpdateUIElements(listBox.SelectedIndex);
             DeleteKeys(Handle, listBox.SelectedIndex, true);
-            CreateKey(Handle, selectedIndex, (int)keys[soundFiles[selectedIndex]]);
-            SaveKeys(trackBar.Value);
+            CreateKey(Handle, listBox.SelectedIndex, (int)keys[soundFiles[listBox.SelectedIndex]]);
+            SaveKeys(this);
             isRegisteringKey = false;
         }
 
         private void listBox_MouseClick(object sender, MouseEventArgs e)
         {
-            selectedIndex = listBox.SelectedIndex;
-            UpdateUIElements(selectedIndex);
+            UpdateUIElements(listBox.SelectedIndex);
             if (isRegisteringKey)
                 isRegisteringKey = false;
         }
@@ -164,11 +181,10 @@ namespace SoundBoard
         /// <param name="index"></param>
         private void UpdateUIElements(int index)
         {
-            //MessageBox.Show(new System.Diagnostics.StackTrace().GetFrame(1).GetMethod().Name);
             if (index >= soundFiles.Length && items.Count > 0)
                 return;
             string key = b_RegisterKey.Text = soundFiles[index] == string.Empty || !keys.ContainsKey(soundFiles[index]) ? Keys.None.ToString() : keys[soundFiles[index]].ToString();
-            items[index] = $"{key} - {Path.GetFileNameWithoutExtension(soundFiles[index]/*[soundDirectory.Length..]*/)}";
+            items[index] = $"{key} - {Path.GetFileNameWithoutExtension(soundFiles[index])}";
         }
 
         /// <summary>
@@ -179,15 +195,19 @@ namespace SoundBoard
         internal void trackBar_Scroll(object sender = null!, EventArgs e = null!)
         {
             if (waveChannel != null)
+            {
                 waveChannel.Volume = trackBar.Value / 100f;
+                if (defaultWaveChannel != null)
+                    defaultWaveChannel.Volume = trackBar.Value / 100f;
+            }
             l_Volume.Text = $"Volume: {trackBar.Value}%";
         }
 
-        private void trackBar_MouseUp(object sender, MouseEventArgs e) => SaveKeys(trackBar.Value);
+        private void trackBar_MouseUp(object sender, MouseEventArgs e) => SaveKeys(this);
 
         private void b_DeleteConf_Click(object sender, EventArgs e)
         {
-            File.Delete(Path.Combine(soundDirectory, "keybinds.json"));
+            File.Delete(Path.Combine(soundDirectory, configName));
             DeleteKeys(Handle, soundFiles.Length);
             Application.Restart();
         }
@@ -212,13 +232,22 @@ namespace SoundBoard
         /// <param name="e"></param>
         private void Exit(object sender, EventArgs e)
         {
-            SaveKeys(trackBar.Value);
+            SaveKeys(this);
             DeleteKeys(Handle, keys.Count);
+
             notifyIcon.Visible = false;
             notifyIcon?.Dispose();
+
             output?.Dispose();
             sound?.Dispose();
+            waveChannel?.Dispose();
+
+            defaultOutput?.Dispose();
+            defaultSound?.Dispose();
+            defaultWaveChannel?.Dispose();
+
             Environment.Exit(Environment.ExitCode);
         }
+
     }
 }

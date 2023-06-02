@@ -44,6 +44,7 @@ namespace SoundBoard
             l_SoundDev = new Label();
             cb_hearPlayedSound = new CheckBox();
             l_Sounds = new Label();
+            cb_ShowExtention = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)trackBar).BeginInit();
             SuspendLayout();
             // 
@@ -93,9 +94,9 @@ namespace SoundBoard
             // 
             // b_Scan
             // 
-            b_Scan.Location = new Point(12, 219);
+            b_Scan.Location = new Point(12, 246);
             b_Scan.Name = "b_Scan";
-            b_Scan.Size = new Size(160, 37);
+            b_Scan.Size = new Size(160, 25);
             b_Scan.TabIndex = 10;
             b_Scan.Text = "Scan sounds folder";
             b_Scan.UseVisualStyleBackColor = true;
@@ -106,7 +107,7 @@ namespace SoundBoard
             listBox.FormattingEnabled = true;
             listBox.HorizontalScrollbar = true;
             listBox.ItemHeight = 17;
-            listBox.Location = new Point(178, 46);
+            listBox.Location = new Point(178, 59);
             listBox.Name = "listBox";
             listBox.Size = new Size(331, 242);
             listBox.TabIndex = 15;
@@ -114,7 +115,7 @@ namespace SoundBoard
             // 
             // b_Exit
             // 
-            b_Exit.Location = new Point(12, 262);
+            b_Exit.Location = new Point(12, 277);
             b_Exit.Name = "b_Exit";
             b_Exit.Size = new Size(58, 26);
             b_Exit.TabIndex = 16;
@@ -133,7 +134,7 @@ namespace SoundBoard
             // 
             // b_DeleteConf
             // 
-            b_DeleteConf.Location = new Point(76, 262);
+            b_DeleteConf.Location = new Point(76, 277);
             b_DeleteConf.Name = "b_DeleteConf";
             b_DeleteConf.Size = new Size(96, 26);
             b_DeleteConf.TabIndex = 18;
@@ -181,11 +182,22 @@ namespace SoundBoard
             l_Sounds.TabIndex = 22;
             l_Sounds.Text = "Sounds:";
             // 
+            // cb_ShowExtention
+            // 
+            cb_ShowExtention.AutoSize = true;
+            cb_ShowExtention.Location = new Point(12, 219);
+            cb_ShowExtention.Name = "cb_ShowExtention";
+            cb_ShowExtention.Size = new Size(142, 21);
+            cb_ShowExtention.TabIndex = 23;
+            cb_ShowExtention.Text = "Show file extentions";
+            cb_ShowExtention.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(521, 304);
+            ClientSize = new Size(521, 313);
+            Controls.Add(cb_ShowExtention);
             Controls.Add(l_Sounds);
             Controls.Add(cb_hearPlayedSound);
             Controls.Add(l_SoundDev);
@@ -226,5 +238,6 @@ namespace SoundBoard
         private Label l_Sounds;
         internal CheckBox cb_StopPrevSound;
         internal CheckBox cb_hearPlayedSound;
+        internal CheckBox cb_ShowExtention;
     }
 }

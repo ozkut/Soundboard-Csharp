@@ -184,7 +184,7 @@ namespace SoundBoard
             if (index >= soundFiles.Length && items.Count > 0)
                 return;
             string key = b_RegisterKey.Text = soundFiles[index] == string.Empty || !keys.ContainsKey(soundFiles[index]) ? Keys.None.ToString() : keys[soundFiles[index]].ToString();
-            items[index] = $"{key} - {Path.GetFileNameWithoutExtension(soundFiles[index])}";
+            items[index] = $"{key} - {(cb_ShowExtention.Checked ? Path.GetFileName(soundFiles[index]) : Path.GetFileNameWithoutExtension(soundFiles[index]))}";
         }
 
         /// <summary>
@@ -248,6 +248,5 @@ namespace SoundBoard
 
             Environment.Exit(Environment.ExitCode);
         }
-
     }
 }

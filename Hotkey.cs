@@ -45,7 +45,10 @@ namespace Soundboard
                 #pragma warning disable CS8600
                 string line = await reader.ReadLineAsync();
 
-                if (line!.StartsWith("Disable echo:"))
+                if (line!.StartsWith("Show file extensions:"))
+                    form1.cb_ShowExtention.Checked = bool.Parse(line.TrimStart("Show file extensions: ".ToCharArray()));
+
+                else if (line!.StartsWith("Disable echo:"))
                     form1.cb_StopPrevSound.Checked = bool.Parse(line.TrimStart("Disable echo: ".ToCharArray()));
 
                 else if (line!.StartsWith("Enable hearing played sound:"))
@@ -88,6 +91,7 @@ namespace Soundboard
             await writer.WriteLineAsync($"Volume: {form1.trackBar.Value}");
             await writer.WriteLineAsync($"Disable echo: {form1.cb_StopPrevSound.Checked}");
             await writer.WriteLineAsync($"Enable hearing played sound: {form1.cb_hearPlayedSound.Checked}");
+            await writer.WriteLineAsync($"Show file extensions: {form1.cb_ShowExtention.Checked}");
             writer.Close();
         }
     }

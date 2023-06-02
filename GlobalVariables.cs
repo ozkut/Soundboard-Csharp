@@ -11,6 +11,13 @@ namespace Soundboard
     {
         internal const string configFileName = "config.txt";
         internal static readonly string soundDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
+        internal static readonly NotifyIcon notifyIcon = new()
+        {
+            Visible = true,
+            Icon = System.Drawing.SystemIcons.Application,
+            Text = "Sound Board",
+            ContextMenuStrip = new()
+        };
 
         internal static DirectSoundOut output, defaultOutput;
         internal static MediaFoundationReader sound, defaultSound;
@@ -27,15 +34,7 @@ namespace Soundboard
         internal static int prevSoundIndex = -1;
         internal static int currentSoundId;
 
-        internal static readonly NotifyIcon notifyIcon = new() 
-        {
-            Visible = true,
-            Icon = System.Drawing.SystemIcons.Application,
-            Text = "Sound Board",
-            ContextMenuStrip = new()
-        };
-
-        internal static readonly HashSet<string> supportedFormats = new() { ".mp3", ".wav", ".wma", ".wmv", ".aac", ".ogg" };
+        internal static readonly HashSet<string> supportedFormats = new() { ".mp3", ".wav", ".wma", ".aac", ".ogg" };
 
         internal static Dictionary<string,Keys> keys;
 

@@ -207,7 +207,7 @@ namespace SoundBoard
 
         private void b_DeleteConf_Click(object sender, EventArgs e)
         {
-            File.Delete(Path.Combine(soundDirectory, configName));
+            File.Delete(Path.Combine(soundDirectory, configFileName));
             DeleteKeys(Handle, soundFiles.Length);
             Application.Restart();
         }

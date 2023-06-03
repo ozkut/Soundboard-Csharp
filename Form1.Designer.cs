@@ -44,7 +44,7 @@ namespace SoundBoard
             l_SoundDev = new Label();
             cb_hearPlayedSound = new CheckBox();
             l_Sounds = new Label();
-            cb_ShowExtention = new CheckBox();
+            cb_ShowExtension = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)trackBar).BeginInit();
             SuspendLayout();
             // 
@@ -91,6 +91,7 @@ namespace SoundBoard
             cb_StopPrevSound.TabIndex = 12;
             cb_StopPrevSound.Text = "Disable echo";
             cb_StopPrevSound.UseVisualStyleBackColor = true;
+            cb_StopPrevSound.CheckedChanged += cb_StopPrevSound_CheckedChanged;
             // 
             // b_Scan
             // 
@@ -182,22 +183,23 @@ namespace SoundBoard
             l_Sounds.TabIndex = 22;
             l_Sounds.Text = "Sounds:";
             // 
-            // cb_ShowExtention
+            // cb_ShowExtension
             // 
-            cb_ShowExtention.AutoSize = true;
-            cb_ShowExtention.Location = new Point(12, 219);
-            cb_ShowExtention.Name = "cb_ShowExtention";
-            cb_ShowExtention.Size = new Size(142, 21);
-            cb_ShowExtention.TabIndex = 23;
-            cb_ShowExtention.Text = "Show file extentions";
-            cb_ShowExtention.UseVisualStyleBackColor = true;
+            cb_ShowExtension.AutoSize = true;
+            cb_ShowExtension.Location = new Point(12, 219);
+            cb_ShowExtension.Name = "cb_ShowExtension";
+            cb_ShowExtension.Size = new Size(142, 21);
+            cb_ShowExtension.TabIndex = 23;
+            cb_ShowExtension.Text = "Show file extensions";
+            cb_ShowExtension.UseVisualStyleBackColor = true;
+            cb_ShowExtension.CheckedChanged += cb_ShowExtension_CheckedChanged;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 17F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(521, 313);
-            Controls.Add(cb_ShowExtention);
+            Controls.Add(cb_ShowExtension);
             Controls.Add(l_Sounds);
             Controls.Add(cb_hearPlayedSound);
             Controls.Add(l_SoundDev);
@@ -238,6 +240,6 @@ namespace SoundBoard
         private Label l_Sounds;
         internal CheckBox cb_StopPrevSound;
         internal CheckBox cb_hearPlayedSound;
-        internal CheckBox cb_ShowExtention;
+        internal CheckBox cb_ShowExtension;
     }
 }

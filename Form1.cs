@@ -1,11 +1,13 @@
 using System;
 using System.IO;
-using System.Windows.Forms;
 using System.Linq;
+using System.Windows.Forms;
 using NAudio.Wave;
 using NAudio.CoreAudioApi;
 using static Soundboard.Hotkey;
+using static Soundboard.Config;
 using static Soundboard.GlobalVariables;
+using System.Reflection;
 
 namespace SoundBoard
 {
@@ -37,7 +39,7 @@ namespace SoundBoard
             GetAudioDevices();
             trackBar_Scroll();
             ScanForSounds();
-            LoadKeys(this);
+            LoadValues(this);
 
             for (int i = listBox.Items.Count; i > 0; i--) { UpdateUIElements(i - 1); }
 
@@ -88,7 +90,7 @@ namespace SoundBoard
             soundFiles = Directory.GetFiles(soundDirectory).Where(file => supportedFormats.Contains(Path.GetExtension(file).ToLower())).ToArray();
             keys = new(soundFiles.Length);
             listBox.DataSource = items = new(soundFiles.ToList());
-            LoadKeys(this);
+            LoadValues(this);
             for (int i = soundFiles.Length; i > 0; i--) { UpdateUIElements(i - 1); }
         }
 
@@ -128,13 +130,19 @@ namespace SoundBoard
             else
             {
                 _ = sound.Seek(0, SeekOrigin.Begin);
-                if (defaultSound != null && cb_hearPlayedSound.Checked)
-                    _ = defaultSound.Seek(0, SeekOrigin.Begin);
+                if (cb_hearPlayedSound.Checked)
+                    _ = defaultSound?.Seek(0, SeekOrigin.Begin);
             }
 
             output.Play();
             if (cb_hearPlayedSound.Checked)
                 defaultOutput.Play();
+        }
+
+        private void cb_StopPrevSound_CheckedChanged(object sender, EventArgs e)
+        {
+            defaultOutput?.Stop();
+            output?.Stop();
         }
 
         private void cb_hearPlayedSound_CheckedChanged(object sender, EventArgs e)
@@ -153,6 +161,12 @@ namespace SoundBoard
             }
         }
 
+        private void cb_ShowExtension_CheckedChanged(object sender, EventArgs e)
+        {
+            for (int i = soundFiles.Length; i >= 0; i--) { UpdateUIElements(i); }
+            b_RegisterKey.Text = soundFiles[listBox.SelectedIndex] == string.Empty || !keys.ContainsKey(soundFiles[listBox.SelectedIndex]) ? Keys.None.ToString() : keys[soundFiles[listBox.SelectedIndex]].ToString();
+        }
+
         private void b_RegisterKey_Click(object sender, EventArgs e) => isRegisteringKey = !isRegisteringKey;
 
         private void b_RegisterKey_KeyDown(object sender, KeyEventArgs e)
@@ -164,7 +178,7 @@ namespace SoundBoard
             UpdateUIElements(listBox.SelectedIndex);
             DeleteKeys(Handle, listBox.SelectedIndex, true);
             CreateKey(Handle, listBox.SelectedIndex, (int)keys[soundFiles[listBox.SelectedIndex]]);
-            SaveKeys(this);
+            SaveValues(this);
             isRegisteringKey = false;
         }
 
@@ -184,7 +198,7 @@ namespace SoundBoard
             if (index >= soundFiles.Length && items.Count > 0)
                 return;
             string key = b_RegisterKey.Text = soundFiles[index] == string.Empty || !keys.ContainsKey(soundFiles[index]) ? Keys.None.ToString() : keys[soundFiles[index]].ToString();
-            items[index] = $"{key} - {(cb_ShowExtention.Checked ? Path.GetFileName(soundFiles[index]) : Path.GetFileNameWithoutExtension(soundFiles[index]))}";
+            items[index] = $"{key} - {(cb_ShowExtension.Checked ? Path.GetFileName(soundFiles[index]) : Path.GetFileNameWithoutExtension(soundFiles[index]))}";
         }
 
         /// <summary>
@@ -203,7 +217,7 @@ namespace SoundBoard
             l_Volume.Text = $"Volume: {trackBar.Value}%";
         }
 
-        private void trackBar_MouseUp(object sender, MouseEventArgs e) => SaveKeys(this);
+        private void trackBar_MouseUp(object sender, MouseEventArgs e) => SaveValues(this);
 
         private void b_DeleteConf_Click(object sender, EventArgs e)
         {
@@ -232,7 +246,7 @@ namespace SoundBoard
         /// <param name="e"></param>
         private void Exit(object sender, EventArgs e)
         {
-            SaveKeys(this);
+            SaveValues(this);
             DeleteKeys(Handle, keys.Count);
 
             notifyIcon.Visible = false;

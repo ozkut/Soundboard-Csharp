@@ -1,7 +1,7 @@
 ﻿using System;
 using NAudio.Wave;
-using System.Windows.Forms;
 using System.Linq;
+using System.Windows.Forms;
 using System.Collections.Generic;
 
 namespace Soundboard
@@ -10,6 +10,7 @@ namespace Soundboard
     internal static class GlobalVariables
     {
         internal const string configFileName = "config.txt";
+
         internal static readonly string soundDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) + @"\Sounds\";
         internal static readonly NotifyIcon notifyIcon = new()
         {
@@ -18,6 +19,7 @@ namespace Soundboard
             Text = "Sound Board",
             ContextMenuStrip = new()
         };
+        internal static readonly HashSet<string> supportedFormats = new() { ".mp3", ".wav", ".wma", ".aac", ".ogg" };
 
         internal static DirectSoundOut output, defaultOutput;
         internal static MediaFoundationReader sound, defaultSound;
@@ -29,12 +31,10 @@ namespace Soundboard
         internal static string[] soundFiles;
         internal static string prevFileDir;
 
-        internal static bool isRegisteringKey_;
-
-        internal static int prevSoundIndex = -1;
         internal static int currentSoundId;
+        internal static int prevSoundIndex = -1;
 
-        internal static readonly HashSet<string> supportedFormats = new() { ".mp3", ".wav", ".wma", ".aac", ".ogg" };
+        internal static bool isRegisteringKey_;
 
         internal static Dictionary<string,Keys> keys;
 
